@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+import os
+import shutil
+import subprocess
+import sys
+
+SKIP = [".git", "bin", ".envrc", "_bild"]
+PIER = os.environ["PIER"].split()
+DESK = os.environ["DESK"]
+
+for root, dirs, files in os.walk("."):
+    dirs[:] = [d for d in dirs if d not in SKIP]
+    for fname in files:
+        if fname in SKIP:
+            continue
+        for pier in PIER:
+            path = os.path.join(root, fname)
+            desk = os.path.join(pier, DESK)
+            dest = os.path.join(desk, path.strip("./"))
+            if not os.path.exists(os.path.join(pier, ".http.ports")):
+                sys.exit(f"error: ship for {pier} is not running")
+            if not os.path.exists(desk):
+                print(f"mounting desk at {desk}")
+                subprocess.run(["herb", pier, "-d", f"'|mount %'"])
+            # switch on file extension for compilation strategy
+            if path.endswith((".hoon", ".css", ".js", ".html")):
+                shutil.copyfile(path, dest)
+                print(f"{path} -> {dest}")
+            if path.endswith(".elm"):
+                print(f"no compilation strategy for {path}")
+            # commit changes with herb
+            # idk why urbit gives a 500 error when i try to do this
+            subprocess.run(
+                ["herb", pier, "-p", "hood", "-d", f'"+hood/commit %{DESK}"']
+            )
