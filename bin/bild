@@ -31,6 +31,6 @@ for root, dirs, files in os.walk("."):
                 print(f"no compilation strategy for {path}")
             # commit changes with herb
             # idk why urbit gives a 500 error when i try to do this
-            subprocess.run(
-                ["herb", pier, "-p", "hood", "-d", f'"+hood/commit %{DESK}"']
-            )
+            #subprocess.run(
+            #    ["herb", pier, "-p", "hood", "-d", f'"+hood/commit %{DESK}"']
+            #)
