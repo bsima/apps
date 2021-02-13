@@ -1,0 +1,34 @@
+to build
+========
+
+first create a .envrc file like so:
+
+    PATH_add $PWD/bin
+    export PIERS="../zod ../bus"  # or whatever
+    export DESK="home"
+
+then:
+
+    $ direnv allow
+    $ bild
+
+it's convenient to use rg and entr like so:
+
+    $ rg --files | entr -c bild
+
+
+source layout
+=============
+
+follows the arvo layout, with additional bin and nix directories:
+
+    .
+    ├── app    all app files (hoon, css, js, elm, everything)
+    ├── bin    unix scripts, not copied to piers
+    ├── gen    urbit generators (scripts)
+    ├── lib    library files
+    ├── mar    urbit marks, basically mime types
+    ├── nix    nix code for dependencies, not copied to piers
+    ├── sur    urbit types
+    └── tests
+

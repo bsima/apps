@@ -5,32 +5,38 @@ import shutil
 import subprocess
 import sys
 
-SKIP = [".git", "bin", ".envrc", "_bild"]
-PIER = os.environ["PIER"].split()
+SKIP = [".git", "bin", ".envrc", "_bild", "nix"]
 DESK = os.environ["DESK"]
 
-for root, dirs, files in os.walk("."):
-    dirs[:] = [d for d in dirs if d not in SKIP]
-    for fname in files:
-        if fname in SKIP:
+PIERS = os.environ["PIERS"].split()
+FILES = subprocess.check_output(["git", "ls-files", "-mo"]).split()
+
+for pier in PIERS:
+    print("pier:", pier)
+    desk = os.path.join(pier, DESK)
+    if not os.path.exists(os.path.join(pier, ".http.ports")):
+        print(f"fail: ship is not running")
+        continue
+    elif not os.path.exists(desk):
+        sys.exit(f"fail: need to |mount %")
+        #subprocess.run(["herb", pier, "-d", f"'|mount %'"])
+    for path in FILES:
+        path = path.decode('utf-8')
+        if path.startswith(tuple(SKIP)):
+            print("skip:", path)
             continue
-        for pier in PIER:
-            path = os.path.join(root, fname)
-            desk = os.path.join(pier, DESK)
+        else:
             dest = os.path.join(desk, path.strip("./"))
-            if not os.path.exists(os.path.join(pier, ".http.ports")):
-                sys.exit(f"error: ship for {pier} is not running")
-            if not os.path.exists(desk):
-                print(f"mounting desk at {desk}")
-                subprocess.run(["herb", pier, "-d", f"'|mount %'"])
             # switch on file extension for compilation strategy
-            if path.endswith((".hoon", ".css", ".js", ".html")):
+            if path.endswith((".hoon", ".css", ".js", ".html", ".json")):
+                os.makedirs(os.path.dirname(dest), exist_ok=True)
                 shutil.copyfile(path, dest)
-                print(f"{path} -> {dest}")
-            if path.endswith(".elm"):
-                print(f"no compilation strategy for {path}")
+                print(f"copy: {path} -> {pier}")
+            else:
+                print(f"fail: no compilation strategy for {path}")
             # commit changes with herb
             # idk why urbit gives a 500 error when i try to do this
             #subprocess.run(
             #    ["herb", pier, "-p", "hood", "-d", f'"+hood/commit %{DESK}"']
             #)
+    print("----")
