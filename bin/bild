@@ -1,29 +1,33 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import shutil
 import subprocess
 import sys
 
-SKIP = [".git", "bin", ".envrc", "_bild", "nix"]
+SKIP = [".git", "bin", ".envrc", "_bild", "nix", ".swp"]
 DESK = os.environ["DESK"]
 
 PIERS = os.environ["PIERS"].split()
 FILES = subprocess.check_output(["git", "ls-files", "-mo"]).split()
 
+def prn(label, *rest):
+    print(f"{label}: ", *rest)
+
 for pier in PIERS:
-    print("pier:", pier)
+    prn("pier", pier)
     desk = os.path.join(pier, DESK)
     if not os.path.exists(os.path.join(pier, ".http.ports")):
-        print(f"fail: ship is not running")
+        prn("fail", f"ship is not running")
         continue
     elif not os.path.exists(desk):
-        sys.exit(f"fail: need to |mount %")
+        prn("fail", f"need to |mount %")
+        sys.exit(1)
         #subprocess.run(["herb", pier, "-d", f"'|mount %'"])
     for path in FILES:
         path = path.decode('utf-8')
-        if path.startswith(tuple(SKIP)):
-            print("skip:", path)
+        if path.startswith(tuple(SKIP)) or path.endswith(tuple(SKIP)):
+            prn("skip", path)
             continue
         else:
             dest = os.path.join(desk, path.strip("./"))
@@ -31,12 +35,11 @@ for pier in PIERS:
             if path.endswith((".hoon", ".css", ".js", ".html", ".json")):
                 os.makedirs(os.path.dirname(dest), exist_ok=True)
                 shutil.copyfile(path, dest)
-                print(f"copy: {path} -> {pier}")
+                prn("copy", f"{path} -> {pier}")
             else:
-                print(f"fail: no compilation strategy for {path}")
+                prn("fail", f"no compilation strategy for {path}")
             # commit changes with herb
             # idk why urbit gives a 500 error when i try to do this
             #subprocess.run(
             #    ["herb", pier, "-p", "hood", "-d", f'"+hood/commit %{DESK}"']
             #)
-    print("----")
